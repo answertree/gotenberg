@@ -198,6 +198,10 @@ ENV PDFTK_BIN_PATH /usr/bin/pdftk
 ENV QPDF_BIN_PATH /usr/bin/qpdf
 ENV EXIFTOOL_BIN_PATH /usr/bin/exiftool
 
+# ivan: solution for Cloud Run (the non-root user gotenberg does not own the Tini binary by default)
+USER root
+RUN chown gotenberg: /usr/bin/tini
+
 USER gotenberg
 WORKDIR /home/gotenberg
 

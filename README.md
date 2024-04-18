@@ -10,6 +10,32 @@
 Gotenberg provides a developer-friendly API to interact with powerful tools like Chromium and LibreOffice for converting 
 numerous document formats (HTML, Markdown, Word, Excel, etc.) into PDF files, and more!
 
+## Build For Cloud Run
+
+Clone repository
+
+Create cloudbuild.yaml:
+```
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/your-project-id/gotenberg',
+         '--build-arg', 'GOLANG_VERSION=1.22',
+         '--build-arg', 'DOCKER_REPOSITORY=gotenberg',
+         '--build-arg', 'GOTENBERG_VERSION=snapshot',
+         '--build-arg', 'GOTENBERG_USER_GID=1001',
+         '--build-arg', 'GOTENBERG_USER_UID=1001',
+         '--build-arg', 'NOTO_COLOR_EMOJI_VERSION=v2.042',
+         '--build-arg', 'PDFTK_VERSION=v3.3.3',
+         '-f', 'build/Dockerfile', '.']
+images:
+- 'gcr.io/your-project-id/gotenberg' 
+```
+
+Open a terminal and run the following command:
+```
+gcloud builds submit --project=your-project-id --config cloudbuild.yaml .
+```
+
 ## Quick Start
 
 Open a terminal and run the following command:
