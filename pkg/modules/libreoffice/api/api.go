@@ -62,6 +62,9 @@ type Options struct {
 	// PDF/A-3b and PDF/UA.
 	// Optional.
 	PdfFormats gotenberg.PdfFormats
+
+	// ivan: allows to convert to non-pdf
+	Format string
 }
 
 // Uno is an abstraction on top of the Universal Network Objects API.

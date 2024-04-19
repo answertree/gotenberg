@@ -35,6 +35,7 @@ func convertRoute(libreOffice libreofficeapi.Uno, engine gotenberg.PdfEngine) ap
 				nativePdfFormats bool
 				merge            bool
 				metadata         map[string]interface{}
+				format           string // ivan: support non-pdf converting
 			)
 
 			err := ctx.FormData().
@@ -56,6 +57,7 @@ func convertRoute(libreOffice libreofficeapi.Uno, engine gotenberg.PdfEngine) ap
 					}
 					return nil
 				}).
+				String("format", &format, "pdf"). // ivan
 				Validate()
 			if err != nil {
 				return fmt.Errorf("validate form data: %w", err)
@@ -69,12 +71,13 @@ func convertRoute(libreOffice libreofficeapi.Uno, engine gotenberg.PdfEngine) ap
 			// Alright, let's convert each document to PDF.
 			outputPaths := make([]string, len(inputPaths))
 			for i, inputPath := range inputPaths {
-				outputPaths[i] = ctx.GeneratePath(".pdf")
+				outputPaths[i] = ctx.GeneratePath("." + format) // ivan
 				options := libreofficeapi.Options{
 					Landscape:        landscape,
 					PageRanges:       nativePageRanges,
 					ExportFormFields: exportFormFields,
 					SinglePageSheets: singlePageSheets,
+					Format: format, // ivan
 				}
 
 				if nativePdfFormats {

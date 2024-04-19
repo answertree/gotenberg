@@ -255,7 +255,7 @@ func (p *libreOfficeProcess) pdf(ctx context.Context, logger *zap.Logger, inputP
 	args := []string{
 		"--no-launch",
 		"--format",
-		"pdf",
+		options.Format,  // ivan: Using the format specified in options
 	}
 
 	args = append(args, "--port", fmt.Sprintf("%d", p.socketPort))
@@ -293,18 +293,20 @@ func (p *libreOfficeProcess) pdf(ctx context.Context, logger *zap.Logger, inputP
 		return ErrInvalidPdfFormats
 	}
 
-	if options.PdfFormats.PdfUa {
-		args = append(
-			args,
-			"--export", "UseTaggedPDF=true",
-			"--export", "EnableTextAccessForAccessibilityTools=true",
-		)
-	} else {
-		args = append(
-			args,
-			"--export", "UseTaggedPDF=false",
-			"--export", "EnableTextAccessForAccessibilityTools=false",
-		)
+	if options.Format == "pdf" { // ivan
+		if options.PdfFormats.PdfUa {
+			args = append(
+				args,
+				"--export", "UseTaggedPDF=true",
+				"--export", "EnableTextAccessForAccessibilityTools=true",
+			)
+		} else {
+			args = append(
+				args,
+				"--export", "UseTaggedPDF=false",
+				"--export", "EnableTextAccessForAccessibilityTools=false",
+			)
+		}
 	}
 
 	inputPath, err := nonBasicLatinCharactersGuard(logger, inputPath)
@@ -320,6 +322,10 @@ func (p *libreOfficeProcess) pdf(ctx context.Context, logger *zap.Logger, inputP
 	}
 
 	logger.Debug(fmt.Sprintf("print to PDF with: %+v", options))
+
+	// ivan: debug
+	//logger.Info("Command arguments for processing",
+    //zap.Strings("args", args))
 
 	exitCode, err := cmd.Exec()
 	if err == nil {
