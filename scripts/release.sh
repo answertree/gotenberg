@@ -2,51 +2,17 @@
 
 set -e
 
-GOLANG_VERSION="$1"
-GOTENBERG_VERSION="$2"
-GOTENBERG_USER_GID="$3"
-GOTENBERG_USER_UID="$4"
-NOTO_COLOR_EMOJI_VERSION="$5"
-PDFTK_VERSION="$6"
-DOCKER_REPOSITORY="$7"
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/b3o6i8i6
 
-if [ "$GOTENBERG_VERSION" == "edge" ]; then
-  docker buildx build \
-    --build-arg GOLANG_VERSION="$GOLANG_VERSION" \
-    --build-arg GOTENBERG_VERSION="$GOTENBERG_VERSION" \
-    --build-arg GOTENBERG_USER_GID="$GOTENBERG_USER_GID" \
-    --build-arg GOTENBERG_USER_UID="$GOTENBERG_USER_UID" \
-    --build-arg NOTO_COLOR_EMOJI_VERSION="$NOTO_COLOR_EMOJI_VERSION" \
-    --build-arg PDFTK_VERSION="$PDFTK_VERSION" \
-    --platform linux/amd64 \
-    --platform linux/arm64 \
-    --platform linux/386 \
-    --platform linux/arm/v7 \
-    -t "$DOCKER_REPOSITORY/gotenberg:edge" \
-    --push \
-    -f build/Dockerfile .
 
-  # Cloud Run variant.
-  # Only linux/amd64! See https://github.com/gotenberg/gotenberg/issues/505#issuecomment-1264679278.
-  docker buildx build \
-    --build-arg DOCKER_REPOSITORY="$DOCKER_REPOSITORY" \
-    --build-arg GOTENBERG_VERSION="$GOTENBERG_VERSION" \
-    --platform linux/amd64 \
-    -t "$DOCKER_REPOSITORY/gotenberg:edge-cloudrun" \
-    --push \
-    -f build/Dockerfile.cloudrun .
+GOLANG_VERSION="1.21"
+GOTENBERG_USER_GID="1001"
+GOTENBERG_USER_UID="1001"
+NOTO_COLOR_EMOJI_VERSION="v2.042"
+PDFTK_VERSION="v3.3.3"
+DOCKER_REPOSITORY="public.ecr.aws/b3o6i8i6/answertree"
 
-  exit 0
-fi
-
-GOTENBERG_VERSION="${GOTENBERG_VERSION//v}"
-IFS='.' read -ra SEMVER <<< "$GOTENBERG_VERSION"
-VERSION_LENGTH=${#SEMVER[@]}
-
-if [ "$VERSION_LENGTH" -ne 3 ]; then
-  echo "$VERSION is not semver."
-  exit 1
-fi
+GOTENBERG_VERSION="8.4.0"
 
 docker buildx build \
   --build-arg GOLANG_VERSION="$GOLANG_VERSION" \
@@ -55,26 +21,24 @@ docker buildx build \
   --build-arg GOTENBERG_USER_UID="$GOTENBERG_USER_UID" \
   --build-arg NOTO_COLOR_EMOJI_VERSION="$NOTO_COLOR_EMOJI_VERSION" \
   --build-arg PDFTK_VERSION="$PDFTK_VERSION" \
-  --platform linux/amd64 \
   --platform linux/arm64 \
-  --platform linux/386 \
-  --platform linux/arm/v7 \
   -t "$DOCKER_REPOSITORY/gotenberg:latest" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}.${SEMVER[2]}" \
+  -t "$DOCKER_REPOSITORY/gotenberg:8" \
   --push \
   -f build/Dockerfile .
 
+#  --platform linux/amd64 \
+
+
 # Cloud Run variant.
 # Only linux/amd64! See https://github.com/gotenberg/gotenberg/issues/505#issuecomment-1264679278.
-docker buildx build \
-  --build-arg DOCKER_REPOSITORY="$DOCKER_REPOSITORY" \
-  --build-arg GOTENBERG_VERSION="$GOTENBERG_VERSION" \
-  --platform linux/amd64 \
-  -t "$DOCKER_REPOSITORY/gotenberg:latest-cloudrun" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}-cloudrun" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}-cloudrun" \
-  -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}.${SEMVER[2]}-cloudrun" \
-  --push \
-  -f build/Dockerfile.cloudrun .
+# docker buildx build \
+#   --build-arg DOCKER_REPOSITORY="$DOCKER_REPOSITORY" \
+#   --build-arg GOTENBERG_VERSION="$GOTENBERG_VERSION" \
+#   --platform linux/amd64 \
+#   -t "$DOCKER_REPOSITORY/gotenberg:latest-cloudrun" \
+#   -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}-cloudrun" \
+#   -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}-cloudrun" \
+#   -t "$DOCKER_REPOSITORY/gotenberg:${SEMVER[0]}.${SEMVER[1]}.${SEMVER[2]}-cloudrun" \
+#   --push \
+#   -f build/Dockerfile.cloudrun .
